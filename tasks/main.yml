@@ -1,2 +1,22 @@
 ---
 # tasks file for minecraft-servers
+
+- name: install minecraft support packages (apt)
+  apt: >
+      name="{{ item }}"
+      state="latest"
+  with_items:
+      - oracle-java8-installer
+      - tmpreaper
+  tags: minecraft-servers
+  
+- name: SHOWWARNING=false
+  lineinfile: >
+      dest="/etc/tmpreaper.conf"
+      regexp="SHOWWARNING="
+      line="SHOWWARNING=false"
+      owner="root"
+      group="root"
+      mode="0644"
+  tags: minecraft-servers
+  
