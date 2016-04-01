@@ -20,3 +20,12 @@
       mode="0644"
   tags: minecraft-servers
   
+- name: tmpreader MSM world archives
+  template: >
+      src="msm.j2"
+      dest="/etc/cron.d/msm-tmpreaper"
+      owner="root"
+      group="root"
+      mode="0644"
+  tags: minecraft-servers
+  

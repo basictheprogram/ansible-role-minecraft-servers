@@ -1,0 +1,3 @@
+# delete archives older than 2 days in order to save space
+
+19 5 * * * root /usr/sbin/tmpreaper -m 36h {{ minecraft_servers_worlds }}
