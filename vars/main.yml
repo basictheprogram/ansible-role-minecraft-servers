@@ -1,2 +1,6 @@
 ---
 # vars file for minecraft-servers
+
+oracle_java_version: "java8"
+oracle_java_set_default: "oracle-{{ oracle_java_version }}-set-default"
+oracle_java_installer: "oracle-{{ oracle_java_version }}-installer"

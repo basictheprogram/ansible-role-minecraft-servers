@@ -1,31 +1,52 @@
 ---
 # tasks file for minecraft-servers
 
+- name: added WebUpd8 PPA for Oracle java8
+  apt_repository:
+    repo: 'ppa:webupd8team/java'
+    update_cache: yes 
+  tags: minecraft-servers
+
+- name: silent install 
+  shell: 'echo "{{ oracle_java_installer }} shared/accepted-oracle-license-v1-1 select true" | /usr/bin/debconf-set-selections'
+  tags: minecraft-servers
+
+- debug:
+    msg: "{{ oracle_java_installer }}"
+  tags: minecraft-servers
+
+- name: install oracle java packages (apt)
+  apt:
+    name: "{{ item }}"
+    state: "latest"
+  with_items:
+    - "{{ oracle_java_installer }}"
+  tags: minecraft-servers
+
 - name: install minecraft support packages (apt)
   apt:
-	name: "{{ item }}"
-	state: "latest"
+    name: "{{ item }}"
+    state: "latest"
   with_items:
-      - oracle-java8-installer
-      - tmpreaper
+    - tmpreaper
   tags: minecraft-servers
   
 - name: SHOWWARNING=false
-  lineinfile: 
-	dest: "/etc/tmpreaper.conf"
-	regexp: "SHOWWARNING="
-	line: "SHOWWARNING=false"
-	owner: "root"
-	group: "root"
-	mode: "0644"
+  lineinfile:
+    dest: "/etc/tmpreaper.conf"
+    regexp: "SHOWWARNING="
+    line: "SHOWWARNING=false"
+    owner: "root"
+    group: "root"
+    mode: "0644"
   tags: minecraft-servers
   
 - name: tmpreaper MSM world archives
   template:
-	src: "msm.j2"
-	dest: "/etc/cron.d/msm-tmpreaper"
-	owner: "root"
-	group: "root"
-	mode: "0644"
+    src: "msm.j2"
+    dest: "/etc/cron.d/msm-tmpreaper"
+    owner: "root"
+    group: "root"
+    mode: "0644"
   tags: minecraft-servers
   
