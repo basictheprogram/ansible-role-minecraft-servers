@@ -1,2 +1,15 @@
 ---
 # handlers file for minecraft-servers
+
+- name: restart minecraft
+  service:
+    name: "msm"
+    state: "restarted"
+  tags: minecraft-servers
+
+- name: reload minecraft
+  service:
+    name: "msm"
+    state: "reloaded"
+  tags: minecraft-servers
+  

@@ -1,0 +1,11 @@
+{% for item in minecraft_servers_name %}
+/opt/msm/servers/{{ item }}/logs/latest.log
+{
+    rotate 7
+    daily
+    missingok
+    notifempty
+    delaycompress
+    compress
+}
+{% endfor %}

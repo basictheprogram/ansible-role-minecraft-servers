@@ -29,6 +29,9 @@
     state: "latest"
   with_items:
     - tmpreaper
+    - screen 
+    - rsync 
+    - zip
   tags: minecraft-servers
   
 - name: SHOWWARNING=false
@@ -43,10 +46,119 @@
   
 - name: tmpreaper MSM world archives
   template:
-    src: "msm.j2"
+    src: "tempreaper.cron.j2"
     dest: "/etc/cron.d/msm-tmpreaper"
     owner: "root"
     group: "root"
     mode: "0644"
   tags: minecraft-servers
-  
+
+- name: logrotate
+  template:
+    src: logrotate.j2
+    dest: /etc/logrotate.d/minecraft
+    owner: root
+    group: root
+    mode: 0644
+  tags: minecraft-servers
+    
+- name: MSM configuration
+  template:
+    src: "msm.conf.j2"
+    dest: "/etc/msm.conf"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  tags: minecraft-servers
+
+- name: create minecraft user
+  user:
+    comment: "minecraft user"
+    createhome: yes
+    home: "/opt/msm"
+    name: minecraft
+    shell: /bin/false
+    state: present
+  tags: minecraft-servers
+
+- name: store world folders in RAM
+  file:
+    path: /dev/shm/msm
+    owner: minecraft
+    group: minecraft
+    mode: 0775
+    state: directory
+  tags: minecraft-servers
+
+- name: get MSM init
+  get_url:
+    url: http://git.io/J1GAxA
+    dest: /etc/init.d/msm
+    mode: 0755
+#  notify:
+#    - restart minecraft
+  tags: minecraft-servers
+
+- name: link MSM
+  file:
+    src: /etc/init.d/msm
+    dest: /usr/local/bin/msm
+    state: link
+  tags: minecraft-servers
+
+- name: update MSM
+  command: "/usr/local/bin/msm update"
+  tags: minecraft-servers
+
+- name: create jargroup
+  command: "/usr/local/bin/msm jargroup create minecraft minecraft"
+  register: create
+  failed_when: "create.rc != 0 and 'already exists' not in create.stderr"
+  changed_when: "create.rc == 0"
+  ignore_errors: yes
+  tags: minecraft-servers
+
+- name: link servers to jargroup
+  command: "/usr/local/bin/msm {{ item }} jar minecraft"
+  with_items:
+    - "{{ minecraft_servers_name }}"
+  tags: minecraft-servers
+
+- name: update server Minecraft properties
+  lineinfile:
+    dest: /opt/msm/servers/{{ item }}/server.properties
+    regexp: '^msm-version=.*$'
+    line: 'msm-version=minecraft/1.7.0'
+    state: present
+    backrefs: yes
+  with_items:
+    - "{{ minecraft_servers_name }}"
+  tags: minecraft-servers
+
+- name: touch eula.txt
+  file: 
+    path: /opt/msm/servers/{{ item }}/eula.txt
+    state: touch
+  with_items:
+    - "{{ minecraft_servers_name }}"
+  tags: minecraft-servers
+
+- name: accept EULA
+  lineinfile:
+    dest: /opt/msm/servers/{{ item }}/eula.txt
+    regexp: '^eula=.*$'
+    line: 'eula=true'
+    state: present
+    backrefs: yes
+  with_items:
+    - "{{ minecraft_servers_name }}"
+  tags: minecraft-servers
+
+- name: set MSM file permissions
+  file:
+    path: /opt/msm
+    state: directory
+    owner: minecraft
+    group: minecraft
+    recurse: yes
+  tags: minecraft-servers
